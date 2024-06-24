@@ -1,0 +1,3 @@
+ccip/=node_modules/@chainlink/contracts-ccip/src/v0.8/ccip/
+oz/=lib/openzeppelin-contracts/contracts/
+upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
