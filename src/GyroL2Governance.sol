@@ -72,4 +72,6 @@ contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgrade
     function _authorizeUpgrade(address) internal virtual override {
         if (msg.sender != address(this)) revert UUPSUnauthorizedCallContext();
     }
+
+    receive() external payable {}
 }
