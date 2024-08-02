@@ -9,11 +9,11 @@ contract DummyContract is Ownable {
 
     constructor(address owner_) Ownable(owner_) {}
 
-    function setValue(uint256 v) public {
+    function setValue(uint256 v) public onlyOwner {
         value = v;
     }
 
-    function enableFlag() public {
+    function enableFlag() public onlyOwner {
         flag = true;
     }
 }
