@@ -6,6 +6,7 @@ import {Test, console} from "forge-std/Test.sol";
 import {Client} from "ccip/libraries/Client.sol";
 
 import {CCIPReceiverUpgradeable} from "../src/CCIPReceiverUpgradeable.sol";
+import {DataTypes} from "../src/libraries/DataTypes.sol";
 import {GyroL2Governance} from "../src/GyroL2Governance.sol";
 import {DummyContract} from "./support/DummyContract.sol";
 
@@ -20,14 +21,13 @@ contract UpgradedGovernance is GyroL2Governance {
 contract GyroL2GovernanceTest is Test {
     GyroL2Governance public l2Governance;
     DummyContract public dummy;
-    GyroL2Governance.ProposalAction public setValueAction;
+    DataTypes.ProposalAction public setValueAction;
 
     address ccipRouter = makeAddr("ccipRouter");
     address l1Governance = makeAddr("l1Governance");
     uint64 mainnetChainSelector = 11111111;
 
     function setUp() public {
-        l2Governance = new GyroL2Governance();
         GyroL2Governance impl = new GyroL2Governance();
         bytes memory data =
             abi.encodeWithSelector(GyroL2Governance.initialize.selector, ccipRouter, l1Governance, mainnetChainSelector);
@@ -65,7 +65,7 @@ contract GyroL2GovernanceTest is Test {
     }
 
     function test_receive_multiActions() external {
-        GyroL2Governance.ProposalAction[] memory actions = new GyroL2Governance.ProposalAction[](2);
+        DataTypes.ProposalAction[] memory actions = new DataTypes.ProposalAction[](2);
         actions[0] = setValueAction;
         actions[1] = _makeAction(address(dummy), abi.encodeWithSelector(dummy.enableFlag.selector));
         Client.Any2EVMMessage memory message = _makeMessage(mainnetChainSelector, l1Governance, actions);
@@ -77,7 +77,7 @@ contract GyroL2GovernanceTest is Test {
 
     function test_upgrade() external {
         UpgradedGovernance upgraded = new UpgradedGovernance();
-        GyroL2Governance.ProposalAction memory action = _makeAction(
+        DataTypes.ProposalAction memory action = _makeAction(
             address(l2Governance),
             abi.encodeWithSelector(
                 l2Governance.upgradeToAndCall.selector,
@@ -91,25 +91,21 @@ contract GyroL2GovernanceTest is Test {
         assertTrue(UpgradedGovernance(payable(address(l2Governance))).iAmUpgraded());
     }
 
-    function _makeAction(address target, bytes memory data)
-        internal
-        pure
-        returns (GyroL2Governance.ProposalAction memory)
-    {
-        return GyroL2Governance.ProposalAction({target: target, data: data, value: 0});
+    function _makeAction(address target, bytes memory data) internal pure returns (DataTypes.ProposalAction memory) {
+        return DataTypes.ProposalAction({target: target, data: data, value: 0});
     }
 
-    function _makeMessage(uint64 chainSelector, address sender, GyroL2Governance.ProposalAction memory action)
+    function _makeMessage(uint64 chainSelector, address sender, DataTypes.ProposalAction memory action)
         internal
         pure
         returns (Client.Any2EVMMessage memory)
     {
-        GyroL2Governance.ProposalAction[] memory actions = new GyroL2Governance.ProposalAction[](1);
+        DataTypes.ProposalAction[] memory actions = new DataTypes.ProposalAction[](1);
         actions[0] = action;
         return _makeMessage(chainSelector, sender, actions);
     }
 
-    function _makeMessage(uint64 chainSelector, address sender, GyroL2Governance.ProposalAction[] memory actions)
+    function _makeMessage(uint64 chainSelector, address sender, DataTypes.ProposalAction[] memory actions)
         internal
         pure
         returns (Client.Any2EVMMessage memory)

@@ -10,8 +10,10 @@ import {ICREATE3Factory} from "../src/interfaces/ICREATE3Factory.sol";
 import {GyroL2Governance} from "../src/GyroL2Governance.sol";
 
 contract Deployment is Script {
+    // key to compute the L2 governance relayer deployment address
+    string public L2_GOVERNANCE_RELAYER = "GyroscopeL2GovernanceRelayer";
     // key to compute the L2 governance deployment address
-    string public L2_GOVERNANCE = "GYROSCOPE_L2_GOVERNANCE";
+    string public L2_GOVERNANCE = "GyroscopeL2Governance";
 
     // https://etherscan.io/address/0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1
     ICREATE3Factory public factory = ICREATE3Factory(0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1);
@@ -32,9 +34,11 @@ contract Deployment is Script {
     }
 
     function _deployL2Governance(address ccipRouter_) internal {
+        address l2GovernanceRelayer = _getDeployed(L2_GOVERNANCE_RELAYER);
+        console.log("L2 Governance Relayer", l2GovernanceRelayer);
         GyroL2Governance impl = new GyroL2Governance();
         bytes memory data = abi.encodeWithSelector(
-            GyroL2Governance.initialize.selector, ccipRouter_, l1Governance, mainnetChainSelector
+            GyroL2Governance.initialize.selector, ccipRouter_, l2GovernanceRelayer, mainnetChainSelector
         );
         bytes memory creationCode = abi.encodePacked(type(UUPSProxy).creationCode, abi.encode(address(impl), data));
         console.log("L2 Governance", _deploy(L2_GOVERNANCE, creationCode));

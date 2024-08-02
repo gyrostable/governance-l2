@@ -2,12 +2,13 @@
 pragma solidity ^0.8.24;
 
 import {Address} from "oz/utils/Address.sol";
-
 import {Initializable} from "upgradeable/proxy/utils/Initializable.sol";
 import {CCIPReceiverUpgradeable} from "./CCIPReceiverUpgradeable.sol";
 import {UUPSUpgradeable} from "upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {Client} from "ccip/libraries/Client.sol";
 import {IRouterClient} from "ccip/interfaces/IRouterClient.sol";
+
+import {DataTypes} from "./libraries/DataTypes.sol";
 
 contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgradeable {
     using Address for address;
@@ -18,18 +19,11 @@ contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgrade
     /// @notice The CCIP router contract
     IRouterClient public router;
 
-    /// @notice The address of the Gyroscope governance contract on Ethereum mainnet
-    address public l1GovernanceAddress;
+    /// @notice The address of the Gyroscope governance relayer on Ethereum mainnet
+    address public l1GovernanceRelayer;
 
     /// @notice Chain selector of Ethereum mainnet on CCIP
     uint64 public mainnetChainSelector;
-
-    /// @notice Proposal action as defined in L1 governance contract
-    struct ProposalAction {
-        address target;
-        bytes data;
-        uint256 value;
-    }
 
     constructor() {
         _disableInitializers();
@@ -39,10 +33,10 @@ contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgrade
      * @notice L2Gyd initializer
      * @dev This initializer should be called via UUPSProxy constructor
      * @param routerAddress_ The CCIP router address
-     * @param l1GovernanceAddress_ the address of the Gyroscope governance contract on Ethereum mainnet
+     * @param l1GovernanceRelayer_ the address of the Gyroscope governance contract on Ethereum mainnet
      * @param mainnetChainSelector_ The chain selector of Ethereum mainnet on CCIP
      */
-    function initialize(address routerAddress_, address l1GovernanceAddress_, uint64 mainnetChainSelector_)
+    function initialize(address routerAddress_, address l1GovernanceRelayer_, uint64 mainnetChainSelector_)
         public
         initializer
     {
@@ -50,7 +44,7 @@ contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgrade
         __CCIPReceiverUpgradeable_init(routerAddress_);
 
         router = IRouterClient(routerAddress_);
-        l1GovernanceAddress = l1GovernanceAddress_;
+        l1GovernanceRelayer = l1GovernanceRelayer_;
         mainnetChainSelector = mainnetChainSelector_;
     }
 
@@ -59,10 +53,10 @@ contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgrade
             revert MessageInvalid();
         }
         address actualSender = abi.decode(any2EvmMessage.sender, (address));
-        if (actualSender != l1GovernanceAddress) {
+        if (actualSender != l1GovernanceRelayer) {
             revert MessageInvalid();
         }
-        ProposalAction[] memory actions = abi.decode(any2EvmMessage.data, (ProposalAction[]));
+        DataTypes.ProposalAction[] memory actions = abi.decode(any2EvmMessage.data, (DataTypes.ProposalAction[]));
         for (uint256 i; i < actions.length; i++) {
             actions[i].target.functionCallWithValue(actions[i].data, actions[i].value);
         }
