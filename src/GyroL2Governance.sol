@@ -31,23 +31,27 @@ contract GyroL2Governance is CCIPReceiverUpgradeable, Initializable, UUPSUpgrade
         uint256 value;
     }
 
+    constructor() {
+        _disableInitializers();
+    }
+
     /**
      * @notice L2Gyd initializer
      * @dev This initializer should be called via UUPSProxy constructor
-     * @param _routerAddress The CCIP router address
-     * @param _l1GovernanceAddress the address of the Gyroscope governance contract on Ethereum mainnet
-     * @param _chainSelector The chain selector of Ethereum mainnet on CCIP
+     * @param routerAddress_ The CCIP router address
+     * @param l1GovernanceAddress_ the address of the Gyroscope governance contract on Ethereum mainnet
+     * @param mainnetChainSelector_ The chain selector of Ethereum mainnet on CCIP
      */
-    function initialize(address _routerAddress, address _l1GovernanceAddress, uint64 _chainSelector)
+    function initialize(address routerAddress_, address l1GovernanceAddress_, uint64 mainnetChainSelector_)
         public
         initializer
     {
         __UUPSUpgradeable_init();
-        __CCIPReceiverUpgradeable_init(_routerAddress);
+        __CCIPReceiverUpgradeable_init(routerAddress_);
 
-        router = IRouterClient(_routerAddress);
-        _l1GovernanceAddress = _l1GovernanceAddress;
-        mainnetChainSelector = _chainSelector;
+        router = IRouterClient(routerAddress_);
+        l1GovernanceAddress = l1GovernanceAddress_;
+        mainnetChainSelector = mainnetChainSelector_;
     }
 
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal virtual override {
