@@ -24,6 +24,14 @@ contract DummyContract is Ownable {
     }
 }
 
+contract UpgradedGovernance is GyroL2Governance {
+    bool public iAmUpgraded;
+
+    function runUpgrade() public {
+        iAmUpgraded = true;
+    }
+}
+
 contract GyroL2GovernanceTest is Test {
     GyroL2Governance public l2Governance;
     DummyContract public dummy;
@@ -80,6 +88,22 @@ contract GyroL2GovernanceTest is Test {
         l2Governance.ccipReceive(message);
         assertEq(dummy.value(), 42);
         assertTrue(dummy.flag());
+    }
+
+    function test_upgrade() external {
+        UpgradedGovernance upgraded = new UpgradedGovernance();
+        GyroL2Governance.ProposalAction memory action = _makeAction(
+            address(l2Governance),
+            abi.encodeWithSelector(
+                l2Governance.upgradeToAndCall.selector,
+                address(upgraded),
+                abi.encodeWithSelector(upgraded.runUpgrade.selector)
+            )
+        );
+        Client.Any2EVMMessage memory message = _makeMessage(mainnetChainSelector, l1Governance, action);
+        vm.prank(ccipRouter);
+        l2Governance.ccipReceive(message);
+        assertTrue(UpgradedGovernance(payable(address(l2Governance))).iAmUpgraded());
     }
 
     function _makeAction(address target, bytes memory data)
