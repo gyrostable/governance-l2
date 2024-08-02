@@ -1,28 +1,13 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity ^0.8.24;
 
-import {Ownable} from "oz/access/Ownable.sol";
 import {ERC1967Proxy} from "oz/proxy/ERC1967/ERC1967Proxy.sol";
 import {Test, console} from "forge-std/Test.sol";
 import {Client} from "ccip/libraries/Client.sol";
 
 import {CCIPReceiverUpgradeable} from "../src/CCIPReceiverUpgradeable.sol";
 import {GyroL2Governance} from "../src/GyroL2Governance.sol";
-
-contract DummyContract is Ownable {
-    uint256 public value;
-    bool public flag;
-
-    constructor(address owner_) Ownable(owner_) {}
-
-    function setValue(uint256 v) public {
-        value = v;
-    }
-
-    function enableFlag() public {
-        flag = true;
-    }
-}
+import {DummyContract} from "./support/DummyContract.sol";
 
 contract UpgradedGovernance is GyroL2Governance {
     bool public iAmUpgraded;
