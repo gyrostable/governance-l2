@@ -28,3 +28,11 @@
 * `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://polygonscan.com/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
 
 * `DummyContract`: [`0xb2e8e2E41753619ff38770247cC0FDB159A5C6e4`](https://polygonscan.com/address/0xb2e8e2E41753619ff38770247cC0FDB159A5C6e4) (testing purposes)
+
+## Base
+
+* `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://basescan.org/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
+
+## Gnosis
+
+* `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://gnosisscan.io/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
