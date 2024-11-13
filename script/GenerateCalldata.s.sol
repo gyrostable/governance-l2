@@ -41,6 +41,7 @@ contract GenerateCalldata is Script {
         require(selector != 0, "Chain name not found");
     }
 
+    /// @notice Generate a token transfer from the L2 governance contract to some recipient.
     function transfer(string memory chainName, address tokenAddress, address recipient, uint256 amountRaw) public view {
         uint64 chainSelector = getChainSelector(chainName);
         bytes memory transferData = abi.encodeWithSelector(IERC20.transfer.selector, recipient, amountRaw);
