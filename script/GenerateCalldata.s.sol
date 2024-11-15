@@ -57,12 +57,14 @@ contract GenerateCalldata is Script {
         GyroL2GovernanceRelayer governanceRelayer = GyroL2GovernanceRelayer(L1_L2_GOVERNANCE_RELAYER);
         uint256 fee = governanceRelayer.getFees(chainSelector, l2Actions, GAS_LIMIT);
 
+        // Safety margin of * 2. We get reimbursed for too high fees and also, fees are small (< $1).
+        fee = fee * 2;
+
         console.log("Use the following ProposalAction attributes in a governance proposal:");
         console.log("target:", L1_L2_GOVERNANCE_RELAYER);
         // console.log("data", relayerData);
         console.log("data:");
         console2.logBytes(relayerData);
-        // TODO safety margin here? NB the relayer silently does NOTHING when fees are too low.
         console.log("value:", fee);
     }
 }
