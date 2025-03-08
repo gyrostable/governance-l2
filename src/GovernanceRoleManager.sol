@@ -6,10 +6,20 @@ import {OwnableUpgradeable} from "upgradeable/access/OwnableUpgradeable.sol";
 import {DataTypes} from "./libraries/DataTypes.sol";
 import {EnumerableSet} from "oz/utils/structs/EnumerableSet.sol";
 
-contract GovernanceRoleManager {
+contract GovernanceRoleManager is OwnableUpgradeable {
     using Address for address;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
+
+    error NotAuthorized();
+
+    event AuthorizedSelectorAdded(address indexed user, bytes4 indexed selector);
+    event AuthorizedSelectorRemoved(address indexed user, bytes4 indexed selector);
+    event AuthorizedTargetAdded(address indexed user, address indexed target);
+    event AuthorizedTargetRemoved(address indexed user, address indexed target);
+    event AuthorizedTargetWithSelectorAdded(address indexed user, address indexed target, bytes4 indexed selector);
+    event AuthorizedTargetWithSelectorRemoved(address indexed user, address indexed target, bytes4 indexed selector);
+    event ActionExecuted(address indexed user, DataTypes.ProposalAction indexed action);
 
     struct AddressWithSelector {
         address target;
@@ -23,8 +33,23 @@ contract GovernanceRoleManager {
     mapping(address => EnumerableSet.AddressSet) internal _authorizedTargets;
 
     /// @notice Allows the address to call the target with the given selector
-    /// This is encoded as abi.encodePacked(target, selector) to prevent collisions
+    /// This is encoded as abi.encodePacked(target, selector)
     mapping(address => EnumerableSet.Bytes32Set) internal _authorizedTargetWithSelectors;
+
+    modifier onlyOwnerOrThis() {
+        if (msg.sender != owner() && msg.sender != address(this)) {
+            revert NotAuthorized();
+        }
+        _;
+    }
+
+    constructor() {
+        _disableInitializers();
+    }
+
+    function initialize(address owner) public initializer {
+        __Ownable_init(owner);
+    }
 
     /// @notice Returns the permissions for the given user
     function getPermissions(address user)
@@ -49,32 +74,46 @@ contract GovernanceRoleManager {
         authorizedTargets = _authorizedTargets[user].values();
     }
 
-    /// @dev value is encoded as:
-    /// Value-Type (8 bits), 0 = Selector, 1 = Target, 2 = TargetWithSelector
-    /// If the value is 0, then the last 4 bytes are the selector
-    /// If the value is 1, then the last 20 bytes are the address
-    /// If the value is 2, then the last 4 bytes are the selector and the preceding 20 bytes are the address
-    /// Can be encoded using:
-    /// abi.encodePacked(uint8(0), uint216(0), bytes4(SELECTOR))
-    /// abi.encodePacked(uint8(1), uint88(0), address(ADDRESS))
-    /// abi.encodePacked(uint8(2), uint56(0), address(ADDRESS), bytes4(SELECTOR))
-    function _authorize(address user, bytes32 value) internal {
-        uint8 valueType = uint8(bytes1(value >> 248));
-        if (valueType == 0) {
-            bytes4 selector =
-                bytes4(uint32(uint256(value) & 0x00000000000000000000000000000000000000000000000000000000ffffffff));
-            _authorizedSelectors[user].add(selector);
-        } else if (valueType == 1) {
-            address target =
-                address(uint160(uint256(value) & 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff));
-            _authorizedTargets[user].add(target);
-        } else if (valueType == 2) {
-            bytes4 selector =
-                bytes4(uint32(uint256(value) & 0x00000000000000000000000000000000000000000000000000000000ffffffff));
-            address target = address(
-                uint160((uint256(value) >> 4) & 0x000000000000000000000000ffffffffffffffffffffffffffffffffffffffff)
-            );
-            _authorizedTargetWithSelectors[user].add(_encodeTargetWithSelector(target, selector));
+    function addAuthorizedSelector(address user, bytes4 selector) external onlyOwnerOrThis {
+        _authorizedSelectors[user].add(selector);
+        emit AuthorizedSelectorAdded(user, selector);
+    }
+
+    function addAuthorizedTarget(address user, address target) external onlyOwnerOrThis {
+        _authorizedTargets[user].add(target);
+        emit AuthorizedTargetAdded(user, target);
+    }
+
+    function addAuthorizedTargetWithSelector(address user, address target, bytes4 selector) external onlyOwnerOrThis {
+        _authorizedTargetWithSelectors[user].add(_encodeTargetWithSelector(target, selector));
+        emit AuthorizedTargetWithSelectorAdded(user, target, selector);
+    }
+
+    function removeAuthorizedSelector(address user, bytes4 selector) external onlyOwnerOrThis {
+        _authorizedSelectors[user].remove(selector);
+        emit AuthorizedSelectorRemoved(user, selector);
+    }
+
+    function removeAuthorizedTarget(address user, address target) external onlyOwnerOrThis {
+        _authorizedTargets[user].remove(target);
+        emit AuthorizedTargetRemoved(user, target);
+    }
+
+    function removeAuthorizedTargetWithSelector(address user, address target, bytes4 selector)
+        external
+        onlyOwnerOrThis
+    {
+        _authorizedTargetWithSelectors[user].remove(_encodeTargetWithSelector(target, selector));
+        emit AuthorizedTargetWithSelectorRemoved(user, target, selector);
+    }
+
+    function executeActions(DataTypes.ProposalAction[] calldata actions) external {
+        for (uint256 i; i < actions.length; i++) {
+            if (!_isAuthorizedAction(msg.sender, actions[i])) {
+                revert NotAuthorized();
+            }
+            _executeAction(actions[i]);
+            emit ActionExecuted(msg.sender, actions[i]);
         }
     }
 
