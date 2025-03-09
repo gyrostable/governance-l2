@@ -21,9 +21,20 @@ contract GovernanceRoleManager is OwnableUpgradeable {
     event AuthorizedTargetWithSelectorRemoved(address indexed user, address indexed target, bytes4 indexed selector);
     event ActionExecuted(address indexed user, DataTypes.ProposalAction indexed action);
 
-    struct AddressWithSelector {
+    struct ParameterRequirement {
+        uint256 index;
+        bytes32 value;
+    }
+
+    struct TargetSet {
+        EnumerableSet.Bytes32Set allowedTargets;
+        mapping(bytes32 => ParameterRequirement[]) allowedParameters;
+    }
+
+    struct TargetSpecification {
         address target;
         bytes4 selector;
+        ParameterRequirement[] parameters;
     }
 
     /// @notice Allows the address to call any target with the given selector
@@ -34,7 +45,8 @@ contract GovernanceRoleManager is OwnableUpgradeable {
 
     /// @notice Allows the address to call the target with the given selector
     /// This is encoded as abi.encodePacked(target, selector)
-    mapping(address => EnumerableSet.Bytes32Set) internal _authorizedTargetWithSelectors;
+    /// ParameterRequirement can be added to enforce parameter values
+    mapping(address => TargetSet) internal _authorizedTargetWithSelectors;
 
     modifier onlyOwnerOrThis() {
         if (msg.sender != owner() && msg.sender != address(this)) {
@@ -58,7 +70,7 @@ contract GovernanceRoleManager is OwnableUpgradeable {
         returns (
             bytes4[] memory authorizedSelectors,
             address[] memory authorizedTargets,
-            AddressWithSelector[] memory authorizedTargetsWithSelectors
+            TargetSpecification[] memory authorizedTargetsWithSelectors
         )
     {
         authorizedSelectors = new bytes4[](_authorizedSelectors[user].length());
@@ -66,10 +78,16 @@ contract GovernanceRoleManager is OwnableUpgradeable {
             authorizedSelectors[i] = bytes4(_authorizedSelectors[user].at(i));
         }
 
-        authorizedTargetsWithSelectors = new AddressWithSelector[](_authorizedTargetWithSelectors[user].length());
-        for (uint256 i; i < _authorizedTargetWithSelectors[user].length(); i++) {
-            (address target, bytes4 selector) = _splitTargetAndSelector(_authorizedTargetWithSelectors[user].at(i));
-            authorizedTargetsWithSelectors[i] = AddressWithSelector({target: target, selector: selector});
+        TargetSet storage targetSet = _authorizedTargetWithSelectors[user];
+        bytes32[] memory allowedTargets = targetSet.allowedTargets.values();
+        authorizedTargetsWithSelectors = new TargetSpecification[](allowedTargets.length);
+        for (uint256 i; i < allowedTargets.length; i++) {
+            (address target, bytes4 selector) = _splitTargetAndSelector(allowedTargets[i]);
+            authorizedTargetsWithSelectors[i] = TargetSpecification({
+                target: target,
+                selector: selector,
+                parameters: targetSet.allowedParameters[allowedTargets[i]]
+            });
         }
         authorizedTargets = _authorizedTargets[user].values();
     }
@@ -84,8 +102,17 @@ contract GovernanceRoleManager is OwnableUpgradeable {
         emit AuthorizedTargetAdded(user, target);
     }
 
-    function addAuthorizedTargetWithSelector(address user, address target, bytes4 selector) external onlyOwnerOrThis {
-        _authorizedTargetWithSelectors[user].add(_encodeTargetWithSelector(target, selector));
+    function addAuthorizedTargetWithSelector(
+        address user,
+        address target,
+        bytes4 selector,
+        ParameterRequirement[] calldata parameters
+    ) external onlyOwnerOrThis {
+        bytes32 targetWithSelector = _encodeTargetWithSelector(target, selector);
+        _authorizedTargetWithSelectors[user].allowedTargets.add(targetWithSelector);
+        for (uint256 i; i < parameters.length; i++) {
+            _authorizedTargetWithSelectors[user].allowedParameters[targetWithSelector].push(parameters[i]);
+        }
         emit AuthorizedTargetWithSelectorAdded(user, target, selector);
     }
 
@@ -103,7 +130,9 @@ contract GovernanceRoleManager is OwnableUpgradeable {
         external
         onlyOwnerOrThis
     {
-        _authorizedTargetWithSelectors[user].remove(_encodeTargetWithSelector(target, selector));
+        bytes32 targetWithSelector = _encodeTargetWithSelector(target, selector);
+        _authorizedTargetWithSelectors[user].allowedTargets.remove(targetWithSelector);
+        delete _authorizedTargetWithSelectors[user].allowedParameters[targetWithSelector];
         emit AuthorizedTargetWithSelectorRemoved(user, target, selector);
     }
 
@@ -123,9 +152,28 @@ contract GovernanceRoleManager is OwnableUpgradeable {
         returns (bool)
     {
         bytes4 selector = _extractSelector(action.data);
-        return _authorizedSelectors[sender].contains(bytes32(selector))
-            || _authorizedTargets[sender].contains(action.target)
-            || _authorizedTargetWithSelectors[sender].contains(_encodeTargetWithSelector(action.target, selector));
+        if (
+            _authorizedSelectors[sender].contains(bytes32(selector))
+                || _authorizedTargets[sender].contains(action.target)
+        ) {
+            return true;
+        }
+        bytes32 targetWithSelector = _encodeTargetWithSelector(action.target, selector);
+        if (!_authorizedTargetWithSelectors[sender].allowedTargets.contains(targetWithSelector)) {
+            return false;
+        }
+        ParameterRequirement[] memory parameters =
+            _authorizedTargetWithSelectors[sender].allowedParameters[targetWithSelector];
+        for (uint256 i; i < parameters.length; i++) {
+            if ((parameters[i].index + 1) * 32 > action.data.length) {
+                return false;
+            }
+            bytes32 parameterValue = bytes32(action.data[parameters[i].index * 32:(parameters[i].index + 1) * 32]);
+            if (parameterValue != parameters[i].value) {
+                return false;
+            }
+        }
+        return true;
     }
 
     function _executeAction(DataTypes.ProposalAction calldata action) internal {
