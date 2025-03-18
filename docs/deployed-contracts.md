@@ -36,3 +36,15 @@
 ## Gnosis
 
 * `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://gnosisscan.io/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
+
+## Sei
+
+* `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://seitrace.com/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
+
+## zkEVM
+
+* `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://zkevm.polygonscan.com/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
+
+## Sonic
+
+* `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://sonicscan.org/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)

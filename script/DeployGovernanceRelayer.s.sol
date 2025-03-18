@@ -8,7 +8,7 @@ import {Deployment} from "./Deployment.sol";
 
 import {GyroL2GovernanceRelayer} from "../src/GyroL2GovernanceRelayer.sol";
 
-contract DeployArbitrumGov is Deployment {
+contract DeployGovernanceRelayer is Deployment {
     // CCIP router (Ethereum)
     // https://etherscan.io/address/0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D
     address ccipRouter = 0x80226fc0Ee2b096224EeAc085Bb9a8cba1146f7D;
