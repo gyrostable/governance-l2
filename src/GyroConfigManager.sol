@@ -21,6 +21,11 @@ contract GyroConfigManager is Ownable {
         config.setAddress(poolKey, value);
     }
 
+    function unsetPoolConfig(address pool, bytes32 key) external onlyOwner {
+        bytes32 poolKey = _getPoolKey(pool, key);
+        config.unset(poolKey);
+    }
+
     // NOTE: code from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
     function _delegate(address implementation) internal virtual {
         assembly {
