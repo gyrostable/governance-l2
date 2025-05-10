@@ -3,10 +3,11 @@ pragma solidity ^0.8.24;
 
 import {Address} from "oz/utils/Address.sol";
 import {OwnableUpgradeable} from "upgradeable/access/OwnableUpgradeable.sol";
+import {UUPSUpgradeable} from "upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {DataTypes} from "./libraries/DataTypes.sol";
 import {EnumerableSet} from "oz/utils/structs/EnumerableSet.sol";
 
-contract GovernanceRoleManager is OwnableUpgradeable {
+contract GovernanceRoleManager is OwnableUpgradeable, UUPSUpgradeable {
     using Address for address;
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.Bytes32Set;
@@ -188,4 +189,6 @@ contract GovernanceRoleManager is OwnableUpgradeable {
         target = address(uint160(uint256(targetWithSelector) >> 32));
         selector = bytes4(uint32(uint256(targetWithSelector) & 0xffffffff));
     }
+
+    function _authorizeUpgrade(address) internal virtual override onlyOwner {}
 }
