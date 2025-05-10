@@ -8,12 +8,19 @@ import {Script} from "forge-std/Script.sol";
 import {UUPSProxy} from "./UUPSProxy.sol";
 import {ICREATE3Factory} from "../src/interfaces/ICREATE3Factory.sol";
 import {GyroL2Governance} from "../src/GyroL2Governance.sol";
+import {GyroConfigManager} from "../src/GyroConfigManager.sol";
+import {GovernanceRoleManager} from "../src/GovernanceRoleManager.sol";
 
 contract Deployment is Script {
     // key to compute the L2 governance relayer deployment address
     string public L2_GOVERNANCE_RELAYER = "GyroscopeL2GovernanceRelayer";
     // key to compute the L2 governance deployment address
     string public L2_GOVERNANCE = "GyroscopeL2Governance";
+    // key to compute the GyroConfigManager deployment address
+    // NB v1 was never used.
+    string public GYRO_CONFIG_MANAGER = "GyroscopeConfigManager-v2";
+    // key to compute the GovernanceRoleManager deployment address
+    string public GOVERNANCE_ROLE_MANAGER = "GyroscopeGovernanceRoleManager";
 
     // https://etherscan.io/address/0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1
     ICREATE3Factory public factory = ICREATE3Factory(0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1);
@@ -42,6 +49,20 @@ contract Deployment is Script {
         );
         bytes memory creationCode = abi.encodePacked(type(UUPSProxy).creationCode, abi.encode(address(impl), data));
         console.log("L2 Governance", _deploy(L2_GOVERNANCE, creationCode));
+    }
+
+    function _deployGyroConfigManager(address gyroConfig_, address owner_) internal {
+        // This is NOT upgradable!
+        bytes memory creationCode = abi.encodePacked(type(GyroConfigManager).creationCode, abi.encode(gyroConfig_, owner_));
+        address gyroConfigManager = _deploy(GYRO_CONFIG_MANAGER, creationCode);
+        console.log("GyroConfigManager", gyroConfigManager);
+    }
+
+    function _deployGovernanceRoleManager(address owner) internal {
+        GovernanceRoleManager impl = new GovernanceRoleManager();
+        bytes memory data = abi.encodeWithSelector(GovernanceRoleManager.initialize.selector, owner);
+        bytes memory creationCode = abi.encodePacked(type(UUPSProxy).creationCode, abi.encode(address(impl), data));
+        console.log("GovernanceRoleManager", _deploy(GOVERNANCE_ROLE_MANAGER, creationCode));
     }
 
     function _deploy(string memory name, bytes memory creationCode) internal returns (address) {
