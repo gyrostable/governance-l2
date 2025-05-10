@@ -27,7 +27,8 @@ contract GyroConfigManager is Ownable {
     }
 
     // NOTE: code from https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/proxy/Proxy.sol
-    function _delegate(address implementation) internal virtual {
+    // We replaced `delegatecall` by `call` to make a normal call instead (which is desired here).
+    function _callTo(address target) internal virtual {
         assembly {
             // Copy msg.data. We take full control of memory in this inline assembly
             // block because it will not return to Solidity code. We overwrite the
@@ -36,7 +37,7 @@ contract GyroConfigManager is Ownable {
 
             // Call the implementation.
             // out and outsize are 0 because we don't know the size yet.
-            let result := delegatecall(gas(), implementation, 0, calldatasize(), 0, 0)
+            let result := call(gas(), target, 0, 0, calldatasize(), 0, 0)
 
             // Copy the returned data.
             returndatacopy(0, 0, returndatasize())
@@ -48,8 +49,10 @@ contract GyroConfigManager is Ownable {
         }
     }
 
+    // Route whatever call we get to gyroconfig with msg.sender==ourselves. So we effectively copy
+    // GyroConfig's ABI here.
     fallback() external onlyOwner {
-        _delegate(address(config));
+        _callTo(address(config));
     }
 
     function _getPoolKey(address pool, bytes32 key) internal pure returns (bytes32) {
