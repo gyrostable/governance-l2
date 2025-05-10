@@ -7,7 +7,7 @@ import "./interfaces/IGyroConfig.sol";
 contract GyroConfigManager is Ownable {
     IGyroConfig public immutable config;
 
-    constructor(address _config) Ownable(msg.sender) {
+    constructor(address _config, address _owner) Ownable(_owner) {
         config = IGyroConfig(_config);
     }
 
