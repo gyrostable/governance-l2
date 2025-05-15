@@ -18,6 +18,8 @@ contract MockTarget {
         message = _message;
     }
 
+    function someOtherFunction(bytes32 _value, uint256 b, address c) external {}
+
     receive() external payable {}
 }
 
@@ -224,6 +226,59 @@ contract GovernanceRoleManagerTest is Test {
         });
 
         vm.expectRevert(GovernanceRoleManager.NotAuthorized.selector);
+        manager.executeActions(actions);
+    }
+
+    function test_recursiveRule() public {
+        address otherUser = makeAddr("otherUser");
+
+        bytes4 selector = MockTarget.someOtherFunction.selector;
+        GovernanceRoleManager.ParameterRequirement[] memory params = new GovernanceRoleManager.ParameterRequirement[](4);
+        params[0] =
+            GovernanceRoleManager.ParameterRequirement({index: 1, value: bytes32(uint256(uint160(address(target))))});
+        params[1] = GovernanceRoleManager.ParameterRequirement({index: 2, value: bytes32(selector)});
+        // abi.encode([(0, "foo")]) will be encoded as:
+        // offset + length + 0 + "foo" (all as 32 bytes values)
+        // so the offset of 0 is 5 * 32 and "foo" is 6 * 32
+        // see https://docs.soliditylang.org/en/develop/abi-spec.html#use-of-dynamic-types for details
+        params[2] = GovernanceRoleManager.ParameterRequirement({index: 5, value: bytes32(uint256(0))});
+        params[3] = GovernanceRoleManager.ParameterRequirement({index: 6, value: bytes32("foo")});
+
+        vm.prank(owner);
+        manager.addPermission(user, address(manager), GovernanceRoleManager.addPermission.selector, params);
+
+        params = new GovernanceRoleManager.ParameterRequirement[](1);
+        params[0] = GovernanceRoleManager.ParameterRequirement({index: 0, value: bytes32("foo")});
+
+        DataTypes.ProposalAction[] memory actions = new DataTypes.ProposalAction[](1);
+        actions[0] = DataTypes.ProposalAction({
+            target: address(manager),
+            value: 0,
+            data: abi.encodeWithSelector(
+                GovernanceRoleManager.addPermission.selector, otherUser, address(target), selector, params
+            )
+        });
+
+        vm.prank(user);
+        manager.executeActions(actions);
+
+        actions[0] = DataTypes.ProposalAction({
+            target: address(target),
+            value: 0,
+            data: abi.encodeWithSelector(selector, bytes32("foo"), 20, address(0))
+        });
+
+        vm.prank(otherUser);
+        manager.executeActions(actions);
+
+        actions[0] = DataTypes.ProposalAction({
+            target: address(target),
+            value: 0,
+            data: abi.encodeWithSelector(selector, bytes32("bar"), 20, address(0))
+        });
+
+        vm.expectRevert(GovernanceRoleManager.NotAuthorized.selector);
+        vm.prank(otherUser);
         manager.executeActions(actions);
     }
 }
