@@ -138,24 +138,28 @@ contract GovernanceRoleManagerTest is Test {
         assertEq(target.value(), 100);
     }
 
-    function test_WildcardTarget() public {
+    // This is essentially a regression for a removed feature where address(0) could be passed to mean 'any target'.
+    function test_NoWildcardTarget() public {
         vm.startPrank(owner);
 
         bytes4 selector = MockTarget.setValue.selector;
         GovernanceRoleManager.ParameterRequirement[] memory params = new GovernanceRoleManager.ParameterRequirement[](0);
 
+        vm.expectRevert("Target cannot be 0");
         manager.addPermission(user, address(0), selector, params);
 
-        vm.stopPrank();
-        vm.startPrank(user);
+        // Remaining code is irrelevant; documentation only of how it *used* to work.
 
-        DataTypes.ProposalAction[] memory actions = new DataTypes.ProposalAction[](1);
-        actions[0] =
-            DataTypes.ProposalAction({target: address(target), value: 0, data: abi.encodeWithSelector(selector, 100)});
+        // vm.stopPrank();
+        // vm.startPrank(user);
 
-        manager.executeActions(actions);
+        // DataTypes.ProposalAction[] memory actions = new DataTypes.ProposalAction[](1);
+        // actions[0] =
+        //     DataTypes.ProposalAction({target: address(target), value: 0, data: abi.encodeWithSelector(selector, 100)});
 
-        assertEq(target.value(), 100);
+        // manager.executeActions(actions);
+
+        // assertEq(target.value(), 100);
     }
 
     function test_WildcardSelector() public {

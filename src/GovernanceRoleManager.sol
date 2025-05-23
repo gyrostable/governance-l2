@@ -81,13 +81,16 @@ contract GovernanceRoleManager is OwnableUpgradeable, UUPSUpgradeable {
 
     /// @notice Adds a permission for a user
     /// @param user The user to add the permission for
-    /// @param target The target to add the permission for, or address(0) for any target
+    /// @param target The target to add the permission for. Needs to be an actual address, you
+    //         _cannot_ pass 0 for 'any'!
     /// @param selector The selector to add the permission for, or 0 for any selector
     /// @param parameters The parameters to add the permission for, or an empty array for any parameters
     function addPermission(address user, address target, bytes4 selector, ParameterRequirement[] calldata parameters)
         external
         onlyOwnerOrThis
     {
+        require(target != address(0), "Target cannot be 0");
+
         bytes32 targetWithSelector = _encodeTargetWithSelector(target, selector);
         _permissions[user].allowedTargets.add(targetWithSelector);
         for (uint256 i; i < parameters.length; i++) {
@@ -125,11 +128,12 @@ contract GovernanceRoleManager is OwnableUpgradeable, UUPSUpgradeable {
 
         bytes4 selector = _extractSelector(action.data);
 
+        // DISABLED:
         // Check for wildcard target (address(0)) with specific selector
-        bytes32 wildcardTargetWithSelector = _encodeTargetWithSelector(address(0), selector);
-        if (targetSet.allowedTargets.contains(wildcardTargetWithSelector)) {
-            return _validateParameters(targetSet.allowedParameters[wildcardTargetWithSelector], action.data);
-        }
+        // bytes32 wildcardTargetWithSelector = _encodeTargetWithSelector(address(0), selector);
+        // if (targetSet.allowedTargets.contains(wildcardTargetWithSelector)) {
+        //     return _validateParameters(targetSet.allowedParameters[wildcardTargetWithSelector], action.data);
+        // }
 
         // Check for specific target with wildcard selector (bytes4(0))
         bytes32 targetWithWildcardSelector = _encodeTargetWithSelector(action.target, bytes4(0));
