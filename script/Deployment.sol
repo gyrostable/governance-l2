@@ -18,9 +18,9 @@ contract Deployment is Script {
     string public L2_GOVERNANCE = "GyroscopeL2Governance";
     // key to compute the GyroConfigManager deployment address
     // NB v1 was never used.
-    string public GYRO_CONFIG_MANAGER = "GyroscopeConfigManager-v2";
+    string public GYRO_CONFIG_MANAGER = "GyroscopeConfigManager-v3";
     // key to compute the GovernanceRoleManager deployment address
-    string public GOVERNANCE_ROLE_MANAGER = "GyroscopeGovernanceRoleManager";
+    string public GOVERNANCE_ROLE_MANAGER = "GyroscopeGovernanceRoleManager-v2";
 
     // https://etherscan.io/address/0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1
     ICREATE3Factory public factory = ICREATE3Factory(0x93FEC2C00BfE902F733B57c5a6CeeD7CD1384AE1);
@@ -53,9 +53,13 @@ contract Deployment is Script {
 
     function _deployGyroConfigManager(address gyroConfig_, address owner_) internal {
         // This is NOT upgradable!
-        bytes memory creationCode = abi.encodePacked(type(GyroConfigManager).creationCode, abi.encode(gyroConfig_, owner_));
+        bytes memory args = abi.encode(gyroConfig_, owner_);
+        bytes memory creationCode = abi.encodePacked(type(GyroConfigManager).creationCode, args);
         address gyroConfigManager = _deploy(GYRO_CONFIG_MANAGER, creationCode);
         console.log("GyroConfigManager", gyroConfigManager);
+        // For verification
+        console.log("Constructor Args:");
+        console.logBytes(args);
     }
 
     function _deployGovernanceRoleManager(address owner) internal {

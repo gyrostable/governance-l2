@@ -32,6 +32,8 @@
 ## Base
 
 * `GyroL2Governance`: [`0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568`](https://basescan.org/address/0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568)
+* `GovernanceRoleManager`: [`0x0B39C433F591f4faBa2a3E5B2d55ba05DBDEa392`](https://basescan.org/address/0x0B39C433F591f4faBa2a3E5B2d55ba05DBDEa392)
+* `GyroConfigManager`: [`0xCb5830e6dBaD1430D6902a846F1b37d4Cfe49b31`](https://basescan.org/address/0xcb5830e6dbad1430d6902a846f1b37d4cfe49b31)
 
 ## Gnosis
 
