@@ -5,3 +5,5 @@ All changes must be triggered by the [Ethereum mainnet governance contract](http
 
 To generate calldata for this, you can use `script/GenerateCalldata.s.sol` (on Ethereum).
 
+To deploy, use `scripts/*.s.sol`. We use create3 to get deterministic addresses. You need `PRIVATE_KEY` in your `.env`.
+
