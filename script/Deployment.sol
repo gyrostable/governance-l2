@@ -65,8 +65,13 @@ contract Deployment is Script {
     function _deployGovernanceRoleManager(address owner) internal {
         GovernanceRoleManager impl = new GovernanceRoleManager();
         bytes memory data = abi.encodeWithSelector(GovernanceRoleManager.initialize.selector, owner);
-        bytes memory creationCode = abi.encodePacked(type(UUPSProxy).creationCode, abi.encode(address(impl), data));
+        bytes memory proxyArgs = abi.encode(address(impl), data);
+        bytes memory creationCode = abi.encodePacked(type(UUPSProxy).creationCode, proxyArgs);
         console.log("GovernanceRoleManager", _deploy(GOVERNANCE_ROLE_MANAGER, creationCode));
+        console.log("Implementation:", address(impl));
+        // To verify the implementation, you can use `--guess-constructor-args` in forge.
+        console.log("Constructor Args (UUPSProxy):");
+        console.logBytes(proxyArgs);
     }
 
     function _deploy(string memory name, bytes memory creationCode) internal returns (address) {
