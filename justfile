@@ -51,3 +51,7 @@ mk-bind-updatablerateprovider-balv2-eclp-calls chain updatable_rateprovider pool
     set key_bytes32 (cast format-bytes32-string "PROTOCOL_SWAP_FEE_PERC")
     echo "parameters:" "[[0, \"$pool_bytes32\"], [1, \"$key_bytes32\"]]"
     
+# Copy contract ABI to clipboard
+copy-abi name:
+    jq .abi out/{{name}}.sol/{{name}}.json | pbcopy
+

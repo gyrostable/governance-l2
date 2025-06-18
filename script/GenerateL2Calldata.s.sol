@@ -5,6 +5,7 @@ import {console} from "forge-std/console.sol";
 import {Script} from "forge-std/Script.sol";
 
 import {GyroConfigManager} from "src/GyroConfigManager.sol";
+import {IGyroConfig} from "src/interfaces/IGyroConfig.sol";
 
 /// @notice Generates calldata for use in GovernanceRoleManager interactions. Doesn't use the message bridge or broadcast.
 contract GenerateL2Calldata is Script {
@@ -26,6 +27,13 @@ contract GenerateL2Calldata is Script {
 
     function setProtocolFeeGyroPortion(address pool, uint256 value) public view {
         setPoolConfigUint(pool, "PROTOCOL_FEE_GYRO_PORTION", value);
+    }
+
+    // To set global config keys
+    function setConfigAddress(string memory key, address value) public view {
+        bytes32 keyBytes = bytes32(bytes(key));
+        bytes memory cdata = abi.encodeWithSelector(IGyroConfig.setAddress.selector, keyBytes, value);
+        console.logBytes(cdata);
     }
 }
 
