@@ -13,6 +13,8 @@ contract DeployGyroConfigManager is Deployment {
             gyroConfig = 0x8A5eB9A5B726583a213c7e4de2403d2DfD42C8a6;
         } else if (block.chainid == 10) {  // Optimism
             gyroConfig = 0x32Acb44fC929339b9F16F0449525cC590D2a23F3;
+        } else if (block.chainid == 42161) { // Arbitrum 
+            gyroConfig = 0x9b683cA24B0e013512E2566b68704dBe9677413c;
         // TODO more chains
         } else {
             revert("Unknown chain");

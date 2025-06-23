@@ -5,8 +5,7 @@ import {Deployment} from "./Deployment.sol";
 
 import {console} from "forge-std/console.sol";
 
-// TODO this is universal, not chain-specific, actually
-contract DeployBaseGovernanceRoleManager is Deployment {
+contract DeployGovernanceRoleManager is Deployment {
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
         // For now, we leave ownership with the deployer.
