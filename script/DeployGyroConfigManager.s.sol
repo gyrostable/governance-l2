@@ -15,6 +15,8 @@ contract DeployGyroConfigManager is Deployment {
             gyroConfig = 0x32Acb44fC929339b9F16F0449525cC590D2a23F3;
         } else if (block.chainid == 42161) { // Arbitrum 
             gyroConfig = 0x9b683cA24B0e013512E2566b68704dBe9677413c;
+        } else if (block.chainid == 1) { // Mainnet
+            gyroConfig = 0xaC89cc9d78BBAd7EB3a02601B4D65dAa1f908aA6;
         // TODO more chains
         } else {
             revert("Unknown chain");
