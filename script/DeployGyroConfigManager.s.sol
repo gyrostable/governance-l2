@@ -17,6 +17,8 @@ contract DeployGyroConfigManager is Deployment {
             gyroConfig = 0x9b683cA24B0e013512E2566b68704dBe9677413c;
         } else if (block.chainid == 1) { // Mainnet
             gyroConfig = 0xaC89cc9d78BBAd7EB3a02601B4D65dAa1f908aA6;
+        } else if (block.chainid == 1329) { // Sei
+            gyroConfig = 0x194941B55555Afd751285B8b792C7538152DeAdd;
         // TODO more chains
         } else {
             revert("Unknown chain");
