@@ -47,5 +47,9 @@
     },
     sonic: {
         GyroL2Governance: '0xd62bb3c3D6C7BD5C6bA64aA4D7BF05aE6AD10568',
-    }
+    },
+    avalanche: {
+        GovernanceRoleManager: '0x0B39C433F591f4faBa2a3E5B2d55ba05DBDEa392',  
+        GyroConfigManager: '0xCb5830e6dBaD1430D6902a846F1b37d4Cfe49b31',
+    },
 }
