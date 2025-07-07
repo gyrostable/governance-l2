@@ -21,6 +21,8 @@ contract DeployGyroConfigManager is Deployment {
             gyroConfig = 0x194941B55555Afd751285B8b792C7538152DeAdd;
         } else if (block.chainid == 43114) { // Avalanche
             gyroConfig = 0x8A5eB9A5B726583a213c7e4de2403d2DfD42C8a6;
+        } else if (block.chainid == 137) { // Polygon
+            gyroConfig = 0xFdc2e9E03f515804744A40d0f8d25C16e93fbE67;
         // TODO more chains
         } else {
             revert("Unknown chain");
