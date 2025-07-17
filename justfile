@@ -21,8 +21,14 @@ mk-protocol-fee-permissions-json pool:
     set pool_bytes32 (cast abi-encode 'foo(address)' {{pool}})
     set key_bytes32 (cast format-bytes32-string "PROTOCOL_SWAP_FEE_PERC")
     echo "target: GyroConfigManager"
-    echo "selector: 0x60b2cf71"  # see `forge selectors list GyroConfigManager`
+    echo "selector: 0x60b2cf71"  # setPoolConfigUint see `forge selectors list GyroConfigManager`
     echo "parameters:" "[[0, \"$pool_bytes32\"], [1, \"$key_bytes32\"]]"
+    echo
+    echo "target: GyroConfigManager"
+    echo "selector: 0xec1bf875"  # unsetPoolConfig
+    echo "parameters:" "[[0, \"$pool_bytes32\"], [1, \"$key_bytes32\"]]"
+
+    
 
 # get contract address on a specified chain
 get-contract chain name:
@@ -46,7 +52,19 @@ mk-bind-updatablerateprovider-balv2-eclp-calls chain updatable_rateprovider pool
     echo "Method: addPermission()"
     echo "user: {{updatable_rateprovider}}"
     echo "target:" (just get-contract {{chain}} GyroConfigManager)
-    echo "selector: 0x60b2cf71"  # see `forge selectors list GyroConfigManager`
+    echo "selector: 0x60b2cf71"  # setPoolConfigUint see `forge selectors list GyroConfigManager`
+    set pool_bytes32 (cast abi-encode 'foo(address)' {{pool}})
+    set key_bytes32 (cast format-bytes32-string "PROTOCOL_SWAP_FEE_PERC")
+    echo "parameters:" "[[0, \"$pool_bytes32\"], [1, \"$key_bytes32\"]]"
+    echo
+    echo "Call 3 (optional depending on protocol fee use):"
+    echo "======="
+    echo
+    echo "Contract: GovernanceRoleManager" (just get-contract {{chain}} GovernanceRoleManager)
+    echo "Method: addPermission()"
+    echo "user: {{updatable_rateprovider}}"
+    echo "target:" (just get-contract {{chain}} GyroConfigManager)
+    echo "selector: 0xec1bf875"  # unsetPoolConfig see `forge selectors list GyroConfigManager`
     set pool_bytes32 (cast abi-encode 'foo(address)' {{pool}})
     set key_bytes32 (cast format-bytes32-string "PROTOCOL_SWAP_FEE_PERC")
     echo "parameters:" "[[0, \"$pool_bytes32\"], [1, \"$key_bytes32\"]]"
