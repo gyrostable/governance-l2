@@ -25,6 +25,8 @@ contract DeployGyroConfigManager is Deployment {
             gyroConfig = 0xFdc2e9E03f515804744A40d0f8d25C16e93fbE67;
         } else if (block.chainid == 146) {// Sonic
             gyroConfig = 0xEeceE50a4333C8B8a8f76c81b6092477AE8Ea81b;
+        } else if (block.chainid == 100) { // Gnosis
+            gyroConfig = 0x00A2a9BBD352Ab46274433FAA9Fec35fE3aBB4a8;
         // TODO more chains
         } else {
             revert("Unknown chain");
