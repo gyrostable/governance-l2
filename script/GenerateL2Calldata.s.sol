@@ -35,5 +35,11 @@ contract GenerateL2Calldata is Script {
         bytes memory cdata = abi.encodeWithSelector(IGyroConfig.setAddress.selector, keyBytes, value);
         console.logBytes(cdata);
     }
+
+    function setConfigUint(string memory key, uint256 value) public view {
+        bytes32 keyBytes = bytes32(bytes(key));
+        bytes memory cdata = abi.encodeWithSelector(IGyroConfig.setUint.selector, keyBytes, value);
+        console.logBytes(cdata);
+    }
 }
 

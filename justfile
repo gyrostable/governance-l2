@@ -15,6 +15,16 @@ mk-set-both-protocol-fees chain pool protocol_fee gyro_portion:
     set cd_set_gyro_portion (just encode-set-protocol-fee-gyro-portion {{pool}} {{gyro_portion}})
     echo "Actions:" "[[\"$gyro_config_manager\", \"$cd_set_protocol_fee\", 0], [\"$gyro_config_manager\", \"$cd_set_gyro_portion\", 0]]"
 
+# Encode calldata for GyroConfigManager (or GyroConfig itself) to set any gyroconfig key to an address.
+mk-set-config-address key value:
+    @# Last part strips the logs lol
+    @forge script script/GenerateL2Calldata.s.sol -s 'setConfigAddress(string,address)' {{key}} {{value}} | awk 'BEGIN {output=0} /^== Logs ==/ {output=3} (output != 0) { output -= 1 } (output == 1) {print($1)}' 
+
+# Encode calldata for GyroConfigManager (or GyroConfig itself) to set any gyroconfig key to a uint.
+mk-set-config-uint key value:
+    @# Last part strips the logs lol
+    @forge script script/GenerateL2Calldata.s.sol -s 'setConfigUint(string,uint256)' {{key}} {{value}} | awk 'BEGIN {output=0} /^== Logs ==/ {output=3} (output != 0) { output -= 1 } (output == 1) {print($1)}' 
+
 # generate permissions for setting PROTOCOL_SWAP_FEE_PERC for a given pool. In json for Safe.
 mk-protocol-fee-permissions-json pool:
     #!/usr/bin/env fish
