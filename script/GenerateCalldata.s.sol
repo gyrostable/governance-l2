@@ -117,10 +117,16 @@ contract GenerateCalldata is Script {
         uint256 actionsCount = 0;
         address l2GyfiAddress = l2GyfiPaused[chainName];
         address l2GydAddress = l2GydPaused[chainName];
+
+        bool isArbitrum = keccak256(bytes(chainName)) == keccak256(bytes("arbitrum"));
+
         if (l2GyfiAddress != address(0)) {
             actionsCount++;
         }
         if (l2GydAddress != address(0)) {
+            actionsCount++;
+        }
+        if (isArbitrum) {
             actionsCount++;
         }
 
@@ -132,6 +138,12 @@ contract GenerateCalldata is Script {
             });
         }
         if (l2GydAddress != address(0)) {
+            if (isArbitrum) {
+                l2Actions[index++] = DataTypes.ProposalAction({
+                    target: l2GydProxy, data: abi.encodeWithSignature("acceptOwnership()"), value: 0
+                });
+            }
+
             l2Actions[index++] = DataTypes.ProposalAction({
                 target: l2GydProxy, data: abi.encodeWithSelector(selector, l2GydAddress, ""), value: 0
             });
@@ -148,9 +160,9 @@ contract GenerateCalldata is Script {
             value: fee
         });
 
-        console.log("Running on chain:", chainName);
-        console.log("L2 actions length:", l2Actions.length);
-        console.log("Fee:", fee);
+        console2.log("Running on chain:", chainName);
+        console2.log("L2 actions length:", l2Actions.length);
+        console2.log("Fee:", fee);
 
         return l1Action;
     }
