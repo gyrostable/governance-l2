@@ -15,6 +15,16 @@ mk-set-both-protocol-fees chain pool protocol_fee gyro_portion:
     set cd_set_gyro_portion (just encode-set-protocol-fee-gyro-portion {{pool}} {{gyro_portion}})
     echo "Actions:" "[[\"$gyro_config_manager\", \"$cd_set_protocol_fee\", 0], [\"$gyro_config_manager\", \"$cd_set_gyro_portion\", 0]]"
 
+# Encode calls to set the global default protocol fee and gyro portion
+mk-set-default-protocol-fees chain protocol_fee gyro_portion:
+    #!/usr/bin/env fish
+    echo "Contract: GovernanceRoleManager" (just get-contract {{chain}} GovernanceRoleManager)
+    echo "Method: executeActions()"
+    set gyro_config_manager (just get-contract {{chain}} GyroConfigManager)
+    set cd_set_protocol_fee (just mk-set-config-uint 'PROTOCOL_SWAP_FEE_PERC' {{protocol_fee}})
+    set cd_set_gyro_portion (just mk-set-config-uint 'PROTOCOL_FEE_GYRO_PORTION' {{gyro_portion}})
+    echo "Actions:" "[[\"$gyro_config_manager\", \"$cd_set_protocol_fee\", 0], [\"$gyro_config_manager\", \"$cd_set_gyro_portion\", 0]]"
+
 # Encode calldata for GyroConfigManager (or GyroConfig itself) to set any gyroconfig key to an address.
 mk-set-config-address key value:
     @# Last part strips the logs lol
