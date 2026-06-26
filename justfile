@@ -5,6 +5,15 @@ encode-set-protocol-fee pool fee:
 encode-set-protocol-fee-gyro-portion pool fee:
     @forge script script/GenerateL2Calldata.s.sol -s 'setProtocolFeeGyroPortion(address,uint256)' {{pool}} {{fee}} | awk 'BEGIN {output=0} /^== Logs ==/ {output=3} (output != 0) { output -= 1 } (output == 1) {print($1)}'
 
+# Get the GyroConfig key for a given pool and key string
+get-pool-key pool key:
+    @forge script script/GenerateL2Calldata.s.sol -s 'getPoolKey(address,string)' {{pool}} {{key}} | awk 'BEGIN {output=0} /^== Logs ==/ {output=3} (output != 0) { output -= 1 } (output == 1) {print($1)}'
+
+# Get the GyroConfig keys for the given pool and for swap fee and gyro portion.
+get-pool-fee-keys pool:
+    @echo "PROTOCOL_SWAP_FEE_PERC:    " $(just get-pool-key {{pool}} "PROTOCOL_SWAP_FEE_PERC")
+    @echo "PROTOCOL_FEE_GYRO_PORTION: " $(just get-pool-key {{pool}} "PROTOCOL_FEE_GYRO_PORTION")
+
 # Encode calls to set both protocol fee and gyro portion, and output info to paste into safe. Usage: just mk-set-both-protocol-fees 0.5e18 1e18
 mk-set-both-protocol-fees chain pool protocol_fee gyro_portion:
     #!/usr/bin/env fish

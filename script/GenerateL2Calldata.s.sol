@@ -41,5 +41,17 @@ contract GenerateL2Calldata is Script {
         bytes memory cdata = abi.encodeWithSelector(IGyroConfig.setUint.selector, keyBytes, value);
         console.logBytes(cdata);
     }
+
+    // ONLY the pool key.
+    // Same as GyroConfigManager._getPoolKey().
+    function getPoolKey(address pool, bytes32 key) public view {
+        bytes32 ret = keccak256(abi.encode(key, pool));
+        console.logBytes(abi.encodePacked(ret));
+    }
+
+    function getPoolKey(address pool, string memory key) public view {
+        bytes32 keyBytes = bytes32(bytes(key));
+        return getPoolKey(pool, keyBytes);
+    }
 }
 
